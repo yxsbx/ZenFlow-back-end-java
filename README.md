@@ -2,6 +2,107 @@
 
 This project describes a day-long flow, from waking up to going to sleep. Developed using Angular, the application provides users with a detailed, interactive experience of their daily routines.
 
+# ZenFlow Backend Java
+
+This repository contains the backend for the ZenFlow application, built with Java and Spring Boot. It integrates external services, including Google Calendar API, Firebase Authentication, and Supabase for the database.
+
+## Initial Setup
+
+To run this project locally, follow the steps below.
+
+### Prerequisites
+
+- Java 17
+- PostgreSQL
+- Account on [Google Cloud Console](https://console.cloud.google.com/)
+- Account on [Firebase Console](https://console.firebase.google.com/)
+- Account on [Supabase](https://app.supabase.io/)
+
+## Database Setup
+
+1. Go to [Supabase](https://app.supabase.io/) and create a new project.
+2. In the **Settings** tab, navigate to **Database** and configure the database name, user, and password.
+3. Copy the connection details (URL, username, and password) and set up in the `.env` file.
+
+Example `.env` configuration:
+
+```plaintext
+DB_URL=jdbc:postgresql://<supabase-url>:port/postgres
+DB_USERNAME=<supabase-user>
+DB_PASSWORD=<supabase-password>
+```
+
+## Configuring the credentials.json for Google Calendar
+
+1. Go to Google Cloud Console.
+2. Create a new project or select an existing project.
+3. In the navigation panel, go to APIs & Services > OAuth consent screen and set up the consent screen.
+4. Enable the Google Calendar API by navigating to APIs & Services > Library.
+5. Go to APIs & Services > Credentials and click Create Credentials > Service Account.
+6. Follow the prompts to create the service account and download the JSON key file.
+7. Rename the file to credentials.json and place it in the src/main/resources/ directory.
+
+### Example credentials.json
+
+The file should have a structure similar to this:
+
+```json
+{
+"type": "service_account",
+"project_id": "your-project-id",
+"private_key_id": "your-private-key-id",
+"private_key": "-----BEGIN PRIVATE KEY-----\nYOUR-PRIVATE-KEY\n-----END PRIVATE KEY-----\n",
+"client_email": "your-service-account-email@your-project-id.iam.gserviceaccount.com",
+"client_id": "your-client-id",
+"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+"token_uri": "https://oauth2.googleapis.com/token",
+"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account-email%40your-project-id.iam.gserviceaccount.com"
+}
+```
+
+## Configuring the firebase-adminsdk.json for Firebase Authentication
+
+1. Go to Firebase Console.
+2. Select your project or create a new one.
+3. Navigate to Project Settings (click the gear icon) > Service accounts.
+4. Click Generate new private key, and download the JSON file.
+5. Rename the file to firebase-adminsdk.json and place it in the src/main/resources/ directory. 
+
+### Example firebase-adminsdk.json
+
+The file should have a structure similar to this:
+
+```json
+{
+"type": "service_account",
+"project_id": "your-project-id",
+"private_key_id": "your-private-key-id",
+"private_key": "-----BEGIN PRIVATE KEY-----\nYOUR-PRIVATE-KEY\n-----END PRIVATE KEY-----\n",
+"client_email": "firebase-adminsdk-email@your-project-id.iam.gserviceaccount.com",
+"client_id": "your-client-id",
+"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+"token_uri": "https://oauth2.googleapis.com/token",
+"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-email%40your-project-id.iam.gserviceaccount.com"
+}
+```
+
+## Running the Project
+After completing the configuration above, you should be able to build and run the project:
+
+Build the project:
+
+```
+./mvnw clean install
+```
+
+## Run the project:
+
+```
+./mvnw spring-boot:run
+```
+
 ## Branching Strategy
 
 To maintain a clean and effective development cycle, we follow a structured branching strategy with the following branches: `feature`, `dev`, `release`, and `prod`. Each branch serves a specific purpose, ensuring a stable and organized workflow.
@@ -53,5 +154,3 @@ To ensure quality and consistency, we use a pull request (PR) workflow with mand
 - **Testing**: Ensure local testing before PR submission.
 
 ---
-
-This README gives clear direction for contributors and ensures that the development flow remains organized and traceable. Let me know if you'd like any adjustments or further details added.
