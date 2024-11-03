@@ -4,7 +4,7 @@ target/
 !**/src/test/**/target/
 .env
 src/main/resources/credentials.json
-!/src/main/resources/firebase-adminsdk.json
+src/main/resources/firebase-adminsdk.json
 
 ### STS ###
 .apt_generated
