@@ -61,11 +61,12 @@ public class SecurityConfig {
 
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             uid, null, Collections.emptyList());
-
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+
                 } catch (Exception e) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Unauthorized: " + e.getMessage());
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Unauthorized: " + e.getMessage() + "\"}");
                     return;
                 }
             }
