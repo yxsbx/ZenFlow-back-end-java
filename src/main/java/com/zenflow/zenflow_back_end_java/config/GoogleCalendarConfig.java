@@ -18,11 +18,11 @@ public class GoogleCalendarConfig {
 
     private static final String APPLICATION_NAME = "ZenFlow Calendar Integration";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final String CREDENTIALS_FILE_PATH = "src/main/resources/credentials.json";
 
     @Bean
     public Calendar googleCalendarService() throws GeneralSecurityException, IOException {
-        GoogleCredential credential = GoogleCredential.fromStream(new FileInputStream(CREDENTIALS_FILE_PATH))
+        String calendarPath = System.getenv("CALENDAR_CREDENTIALS_PATH");
+        GoogleCredential credential = GoogleCredential.fromStream(new FileInputStream(calendarPath))
                 .createScoped(Collections.singletonList("https://www.googleapis.com/auth/calendar"));
 
         return new Calendar.Builder(
