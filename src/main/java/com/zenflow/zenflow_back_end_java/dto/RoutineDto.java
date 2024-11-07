@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -12,7 +12,9 @@ import java.time.LocalDate;
 public class RoutineDto {
     private Long id;
     private Long userId;
-    private LocalDate date;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
     private String goals;
     private Boolean completed;
+    private Boolean sendToCalendar;
 }

@@ -19,9 +19,11 @@ public class Routine {
     @JoinColumn(name = "user_id")
     private Users users;
 
-    private LocalDate date;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
     private String goals;
     private Boolean completed;
+    private Boolean sendToCalendar;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

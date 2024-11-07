@@ -4,6 +4,8 @@ import com.zenflow.zenflow_back_end_java.service.CalendarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/calendar")
 public class CalendarController {
@@ -12,7 +14,10 @@ public class CalendarController {
     private CalendarService calendarService;
 
     @PostMapping("/add-event")
-    public String addEventToCalendar(@RequestParam String eventTitle, @RequestParam String date) {
-        return calendarService.addEvent(eventTitle, date);
+    public String addEventToCalendar(
+            @RequestParam String eventTitle,
+            @RequestParam LocalDateTime startDateTime,
+            @RequestParam LocalDateTime endDateTime) {
+        return calendarService.addEvent(eventTitle, startDateTime, endDateTime);
     }
 }
