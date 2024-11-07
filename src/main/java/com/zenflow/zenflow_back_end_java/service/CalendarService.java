@@ -1,10 +1,12 @@
 package com.zenflow.zenflow_back_end_java.service;
 
+import com.zenflow.zenflow_back_end_java.exception.RateLimitExceededException;
+import com.zenflow.zenflow_back_end_java.limiter.RateLimiterService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -17,7 +19,15 @@ public class CalendarService {
     @Autowired
     private Calendar googleCalendarService;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     public String addEvent(String eventTitle, String date) {
+        String key = "calendar:add-event";
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for adding events. Please try again later.");
+        }
+
         try {
             Event event = new Event()
                     .setSummary(eventTitle);

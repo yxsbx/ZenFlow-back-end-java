@@ -1,5 +1,7 @@
 package com.zenflow.zenflow_back_end_java.service;
 
+import com.zenflow.zenflow_back_end_java.exception.RateLimitExceededException;
+import com.zenflow.zenflow_back_end_java.limiter.RateLimiterService;
 import com.zenflow.zenflow_back_end_java.dto.MoodLogDto;
 import com.zenflow.zenflow_back_end_java.exception.MoodLogNotFoundException;
 import com.zenflow.zenflow_back_end_java.model.MoodLog;
@@ -22,13 +24,26 @@ public class MoodLogService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     public List<MoodLogDto> getAllMoodLogs() {
+        String key = "mood-log:get-all";
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for getting all mood logs. Please try again later.");
+        }
+
         return moodLogRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     public MoodLogDto createMoodLog(MoodLogDto moodLogDto) {
+        String key = "mood-log:create";
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for creating mood logs. Please try again later.");
+        }
+
         Users user = userRepository.findById(moodLogDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -43,12 +58,22 @@ public class MoodLogService {
     }
 
     public MoodLogDto getMoodLogById(Long id) {
+        String key = "mood-log:get-by-id:" + id;
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for this mood log. Please try again later.");
+        }
+
         MoodLog moodLog = moodLogRepository.findById(id)
                 .orElseThrow(() -> new MoodLogNotFoundException("MoodLog not found with id " + id));
         return convertToDto(moodLog);
     }
 
     public MoodLogDto updateMoodLog(Long id, MoodLogDto moodLogDto) {
+        String key = "mood-log:update:" + id;
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for updating this mood log. Please try again later.");
+        }
+
         MoodLog moodLog = moodLogRepository.findById(id)
                 .orElseThrow(() -> new MoodLogNotFoundException("MoodLog not found with id " + id));
 
@@ -66,6 +91,11 @@ public class MoodLogService {
     }
 
     public void deleteMoodLog(Long id) {
+        String key = "mood-log:delete:" + id;
+        if (!rateLimiterService.isAllowed(key)) {
+            throw new RateLimitExceededException("Too many requests for deleting this mood log. Please try again later.");
+        }
+
         MoodLog moodLog = moodLogRepository.findById(id)
                 .orElseThrow(() -> new MoodLogNotFoundException("MoodLog not found with id " + id));
         moodLog.setDeletedAt(LocalDateTime.now());
