@@ -19,10 +19,11 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
+        String token = (authorizationHeader != null && authorizationHeader.startsWith("Bearer "))
+                ? authorizationHeader.substring(7)
+                : request.getParameter("idToken");
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7);
-
+        if (token != null) {
             try {
                 FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
                 String uid = decodedToken.getUid();
