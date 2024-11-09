@@ -97,11 +97,10 @@ public class RoutineService {
 
         Routine updatedRoutine = routineRepository.save(routine);
 
-        // Verificar se precisa atualizar o evento no Google Calendar
         if (routineDto.getSendToCalendar() && !routine.getSendToCalendar()) {
             calendarService.addEvent(routine.getGoals(), routine.getStartDateTime(), routine.getEndDateTime());
             routine.setSendToCalendar(true);
-            routineRepository.save(routine); // Atualiza o estado de envio
+            routineRepository.save(routine);
         }
 
         return convertToDto(updatedRoutine);
