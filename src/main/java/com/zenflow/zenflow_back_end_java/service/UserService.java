@@ -4,6 +4,8 @@ import com.zenflow.zenflow_back_end_java.dto.UserDto;
 import com.zenflow.zenflow_back_end_java.exception.UserNotFoundException;
 import com.zenflow.zenflow_back_end_java.model.Users;
 import com.zenflow.zenflow_back_end_java.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
@@ -34,15 +38,17 @@ public class UserService {
         Optional<Users> existingUser = userRepository.findByFirebaseUid(firebaseUid);
 
         if (existingUser.isPresent()) {
+            logger.info("Usuário existente encontrado: UID {}", firebaseUid);
             return convertToDto(existingUser.get());
         } else {
+            logger.info("Criando novo usuário: UID {}", firebaseUid);
             Users newUser = new Users();
             newUser.setFirebaseUid(firebaseUid);
             newUser.setName(name);
             newUser.setEmail(email);
-            newUser.setCreatedAt(LocalDateTime.now());
 
             Users savedUser = userRepository.save(newUser);
+            logger.info("Usuário criado com ID {}", savedUser.getId());//
             return convertToDto(savedUser);
         }
     }

@@ -1,10 +1,9 @@
 package com.zenflow.zenflow_back_end_java.controller;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
-import com.zenflow.zenflow_back_end_java.dto.UserDto;
-import com.zenflow.zenflow_back_end_java.service.UserService;
+import com.zenflow.zenflow_back_end_java.dto.LoginRequest;
+import com.zenflow.zenflow_back_end_java.dto.TokenResponse;
+import com.zenflow.zenflow_back_end_java.service.FirebaseAuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,37 +15,39 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private UserService userService;
+    private FirebaseAuthService firebaseAuthService;
 
+    /**
+     * Endpoint para login.
+     *
+     * @param loginRequest Dados de login
+     * @return TokenResponse com o ID Token
+     */
     @PostMapping("/login")
-    public ResponseEntity<UserDto> loginOrRegister(
-            @RequestParam String email,
-            @RequestParam String password,
-            @RequestParam(required = false) String name) {
-
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-            UserRecord userRecord;
+            TokenResponse tokenResponse = firebaseAuthService.login(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (Exception e) {
+            System.err.println("Erro no login: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login falhou: " + e.getMessage());
+        }
+    }
 
-            try {
-                userRecord = firebaseAuth.getUserByEmail(email);
-            } catch (FirebaseAuthException e) {
-                UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                        .setEmail(email)
-                        .setPassword(password)
-                        .setDisplayName(name != null ? name : email.split("@")[0]);
-                userRecord = firebaseAuth.createUser(request);
-            }
-
-            String idToken = firebaseAuth.createCustomToken(userRecord.getUid());
-
-            UserDto userDto = userService.findOrCreateUserByFirebaseUid(userRecord.getUid(), userRecord.getDisplayName(), email);
-            userDto.setIdToken(idToken);
-
-            return ResponseEntity.ok(userDto);
-
-        } catch (FirebaseAuthException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    /**
+     * Endpoint para registro.
+     *
+     * @param loginRequest Dados de registro
+     * @return TokenResponse com o ID Token
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            TokenResponse tokenResponse = firebaseAuthService.register(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (Exception e) {
+            System.err.println("Erro no registro: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registro falhou: " + e.getMessage());
         }
     }
 }
