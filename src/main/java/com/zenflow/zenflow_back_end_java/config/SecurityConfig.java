@@ -1,9 +1,12 @@
 package com.zenflow.zenflow_back_end_java.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -11,6 +14,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Autowired
+    private FirebaseAuthenticationFilter firebaseAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -20,12 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(firebaseAuthenticationFilter(), BasicAuthenticationFilter.class);
+                .addFilterBefore(firebaseAuthenticationFilter, BasicAuthenticationFilter.class);
         return http.build();
-    }
-
-    @Bean
-    public FirebaseAuthenticationFilter firebaseAuthenticationFilter() {
-        return new FirebaseAuthenticationFilter();
     }
 }

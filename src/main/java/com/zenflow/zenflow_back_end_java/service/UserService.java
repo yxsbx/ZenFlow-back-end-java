@@ -9,28 +9,19 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    public UserDto createUser(UserDto userDto) {
-        Users user = new Users();
-        user.setName(userDto.getName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword("default_password");
-
-        Users savedUser = userRepository.save(user);
-        return convertToDto(savedUser);
     }
 
     public UserDto getUserById(Long id) {
@@ -39,12 +30,31 @@ public class UserService {
         return convertToDto(user);
     }
 
+    public UserDto findOrCreateUserByFirebaseUid(String firebaseUid, String name, String email) {
+        Optional<Users> existingUser = userRepository.findByFirebaseUid(firebaseUid);
+
+        if (existingUser.isPresent()) {
+            return convertToDto(existingUser.get());
+        } else {
+            Users newUser = new Users();
+            newUser.setFirebaseUid(firebaseUid);
+            newUser.setName(name);
+            newUser.setEmail(email);
+            newUser.setCreatedAt(LocalDateTime.now());
+
+            Users savedUser = userRepository.save(newUser);
+            return convertToDto(savedUser);
+        }
+    }
+
     public UserDto updateUser(Long id, UserDto userDetails) {
         Users user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
 
-        user.setName(userDetails.getName());
-        user.setEmail(userDetails.getEmail());
+        if (userDetails.getName() != null) user.setName(userDetails.getName());
+        if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
+        if (userDetails.getFirebaseUid() != null) user.setFirebaseUid(userDetails.getFirebaseUid());
+
         Users updatedUser = userRepository.save(user);
         return convertToDto(updatedUser);
     }
@@ -57,6 +67,14 @@ public class UserService {
     }
 
     private UserDto convertToDto(Users user) {
-        return new UserDto(user.getId(), user.getName(), user.getEmail());
+        return new UserDto(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getFirebaseUid(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                null
+        );
     }
 }

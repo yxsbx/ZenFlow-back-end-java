@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class Users {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,7 +19,8 @@ public class Users {
     @Column(unique = true)
     private String email;
 
-    private String password;
+    @Column(unique = true)
+    private String firebaseUid;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
