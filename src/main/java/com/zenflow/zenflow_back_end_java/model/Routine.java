@@ -2,6 +2,7 @@ package com.zenflow.zenflow_back_end_java.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -19,8 +20,10 @@ public class Routine {
     @JoinColumn(name = "user_id")
     private Users users;
 
-    private LocalDateTime startDateTime;
-    private LocalDateTime endDateTime;
+    private LocalDate startDate;
+    private LocalTime startTime;
+    private LocalDate endDate;
+    private LocalTime endTime;
     private String goals;
     private Boolean completed;
     private Boolean sendToCalendar;

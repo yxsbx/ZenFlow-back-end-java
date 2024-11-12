@@ -9,4 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TokenResponse {
     private String idToken;
+    private String customToken;
+
+    public TokenResponse(String customToken) {
+        this.customToken = customToken;
+    }
 }

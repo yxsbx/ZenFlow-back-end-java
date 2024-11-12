@@ -1,8 +1,5 @@
 package com.zenflow.zenflow_back_end_java.service;
 
-import com.zenflow.zenflow_back_end_java.exception.RateLimitExceededException;
-import com.zenflow.zenflow_back_end_java.exception.RoutineNotFoundException;
-import com.zenflow.zenflow_back_end_java.limiter.RateLimiterService;
 import com.zenflow.zenflow_back_end_java.dto.RoutineDto;
 import com.zenflow.zenflow_back_end_java.model.Routine;
 import com.zenflow.zenflow_back_end_java.model.Users;
@@ -13,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,114 +22,78 @@ public class RoutineService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private RateLimiterService rateLimiterService;
-
-    @Autowired
-    private CalendarService calendarService;
-
     public List<RoutineDto> getAllRoutines() {
-        String key = "routine:get-all";
-        if (!rateLimiterService.isAllowed(key)) {
-            throw new RateLimitExceededException("Too many requests for fetching all routines. Please try again later.");
-        }
-
         return routineRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     public RoutineDto createRoutine(RoutineDto routineDto) {
-        String key = "routine:create";
-        if (!rateLimiterService.isAllowed(key)) {
-            throw new RateLimitExceededException("Too many requests for creating routines. Please try again later.");
-        }
-
         Users user = findUserById(routineDto.getUserId());
 
         Routine routine = new Routine();
         routine.setUsers(user);
-        routine.setStartDateTime(routineDto.getStartDateTime());
-        routine.setEndDateTime(routineDto.getEndDateTime());
+        routine.setStartDate(routineDto.getStartDate());
+        routine.setStartTime(routineDto.getStartTime());
+        routine.setEndDate(routineDto.getEndDate());
+        routine.setEndTime(routineDto.getEndTime());
         routine.setGoals(routineDto.getGoals());
         routine.setCompleted(routineDto.getCompleted());
         routine.setSendToCalendar(routineDto.getSendToCalendar());
 
         Routine savedRoutine = routineRepository.save(routine);
-
-        if (routineDto.getSendToCalendar()) {
-            calendarService.addEvent(routine.getGoals(), routine.getStartDateTime(), routine.getEndDateTime());
-        }
-
         return convertToDto(savedRoutine);
     }
 
-    public RoutineDto getRoutineById(Long id) {
-        String key = "routine:get-by-id:" + id;
-        if (!rateLimiterService.isAllowed(key)) {
-            throw new RateLimitExceededException("Too many requests for this routine. Please try again later.");
-        }
-
-        Routine routine = routineRepository.findById(id)
-                .orElseThrow(() -> new RoutineNotFoundException("Routine not found with id " + id));
-        return convertToDto(routine);
-    }
-
     public RoutineDto updateRoutine(Long id, RoutineDto routineDto) {
-        String key = "routine:update:" + id;
-        if (!rateLimiterService.isAllowed(key)) {
-            throw new RateLimitExceededException("Too many requests for updating this routine. Please try again later.");
-        }
-
         Routine routine = routineRepository.findById(id)
-                .orElseThrow(() -> new RoutineNotFoundException("Routine not found with id " + id));
+                .orElseThrow(() -> new RuntimeException("Routine not found with id " + id));
 
         Users user = findUserById(routineDto.getUserId());
 
         routine.setUsers(user);
-        routine.setStartDateTime(routineDto.getStartDateTime());
-        routine.setEndDateTime(routineDto.getEndDateTime());
+        routine.setStartDate(routineDto.getStartDate());
+        routine.setStartTime(routineDto.getStartTime());
+        routine.setEndDate(routineDto.getEndDate());
+        routine.setEndTime(routineDto.getEndTime());
         routine.setGoals(routineDto.getGoals());
         routine.setCompleted(routineDto.getCompleted());
         routine.setUpdatedAt(LocalDateTime.now());
 
         Routine updatedRoutine = routineRepository.save(routine);
-
-        if (routineDto.getSendToCalendar() && !routine.getSendToCalendar()) {
-            calendarService.addEvent(routine.getGoals(), routine.getStartDateTime(), routine.getEndDateTime());
-            routine.setSendToCalendar(true);
-            routineRepository.save(routine);
-        }
-
         return convertToDto(updatedRoutine);
     }
 
-    public void deleteRoutine(Long id) {
-        String key = "routine:delete:" + id;
-        if (!rateLimiterService.isAllowed(key)) {
-            throw new RateLimitExceededException("Too many requests for deleting this routine. Please try again later.");
-        }
-
+    public RoutineDto getRoutineById(Long id) {
         Routine routine = routineRepository.findById(id)
-                .orElseThrow(() -> new RoutineNotFoundException("Routine not found with id " + id));
-        routine.setDeletedAt(LocalDateTime.now());
-        routineRepository.save(routine);
+                .orElseThrow(() -> new RuntimeException("Routine not found with id " + id));
+        return convertToDto(routine);
     }
 
-    private Users findUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
+    public void deleteRoutine(Long id) {
+        Optional<Routine> routine = routineRepository.findById(id);
+        routine.ifPresent(r -> {
+            r.setDeletedAt(LocalDateTime.now());
+            routineRepository.save(r);
+        });
     }
 
     private RoutineDto convertToDto(Routine routine) {
         return new RoutineDto(
                 routine.getId(),
                 routine.getUsers().getId(),
-                routine.getStartDateTime(),
-                routine.getEndDateTime(),
+                routine.getStartDate(),
+                routine.getStartTime(),
+                routine.getEndDate(),
+                routine.getEndTime(),
                 routine.getGoals(),
                 routine.getCompleted(),
                 routine.getSendToCalendar()
         );
+    }
+
+    private Users findUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
     }
 }

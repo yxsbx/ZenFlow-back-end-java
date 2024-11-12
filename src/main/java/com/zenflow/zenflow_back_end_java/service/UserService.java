@@ -23,19 +23,19 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findAllByDeletedAtIsNull().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     public UserDto getUserById(Long id) {
-        Users user = userRepository.findById(id)
+        Users user = userRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
         return convertToDto(user);
     }
 
     public UserDto findOrCreateUserByFirebaseUid(String firebaseUid, String name, String email) {
-        Optional<Users> existingUser = userRepository.findByFirebaseUid(firebaseUid);
+        Optional<Users> existingUser = userRepository.findByFirebaseUidAndDeletedAtIsNull(firebaseUid);
 
         if (existingUser.isPresent()) {
             logger.info("Usuário existente encontrado: UID {}", firebaseUid);
@@ -48,13 +48,13 @@ public class UserService {
             newUser.setEmail(email);
 
             Users savedUser = userRepository.save(newUser);
-            logger.info("Usuário criado com ID {}", savedUser.getId());//
+            logger.info("Usuário criado com ID {}", savedUser.getId());
             return convertToDto(savedUser);
         }
     }
 
     public UserDto updateUser(Long id, UserDto userDetails) {
-        Users user = userRepository.findById(id)
+        Users user = userRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
 
         if (userDetails.getName() != null) user.setName(userDetails.getName());
@@ -66,10 +66,11 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        Users user = userRepository.findById(id)
+        Users user = userRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
         user.setDeletedAt(LocalDateTime.now());
         userRepository.save(user);
+        logger.info("Usuário com ID {} foi soft-deletado.", id);
     }
 
     private UserDto convertToDto(Users user) {
@@ -79,8 +80,7 @@ public class UserService {
                 user.getEmail(),
                 user.getFirebaseUid(),
                 user.getCreatedAt(),
-                user.getUpdatedAt(),
-                null
+                user.getUpdatedAt()
         );
     }
 }

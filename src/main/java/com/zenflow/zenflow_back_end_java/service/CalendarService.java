@@ -9,11 +9,10 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-import java.util.TimeZone;
-
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.TimeZone;
 
 @Service
 public class CalendarService {
@@ -24,24 +23,23 @@ public class CalendarService {
     @Autowired
     private RateLimiterService rateLimiterService;
 
-    public String addEvent(String eventTitle, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+    public String addEvent(String eventTitle, LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
         String key = "calendar:add-event";
         if (!rateLimiterService.isAllowed(key)) {
             throw new RateLimitExceededException("Too many requests for adding events. Please try again later.");
         }
 
         try {
-            Event event = new Event()
-                    .setSummary(eventTitle);
+            Event event = new Event().setSummary(eventTitle);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            ZoneId zoneId = ZoneId.systemDefault();
 
             EventDateTime start = new EventDateTime()
-                    .setDateTime(new com.google.api.client.util.DateTime(startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
+                    .setDateTime(new com.google.api.client.util.DateTime(startDate.atTime(startTime).atZone(zoneId).toInstant().toEpochMilli()))
                     .setTimeZone(TimeZone.getDefault().getID());
 
             EventDateTime end = new EventDateTime()
-                    .setDateTime(new com.google.api.client.util.DateTime(endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
+                    .setDateTime(new com.google.api.client.util.DateTime(endDate.atTime(endTime).atZone(zoneId).toInstant().toEpochMilli()))
                     .setTimeZone(TimeZone.getDefault().getID());
 
             event.setStart(start);

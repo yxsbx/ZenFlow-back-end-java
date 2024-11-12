@@ -15,5 +15,4 @@ public class UserDto {
     private String firebaseUid;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String idToken;
 }
